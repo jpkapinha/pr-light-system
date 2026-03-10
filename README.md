@@ -1,1 +1,105 @@
-IyBQUiBUcmFmZmljIExpZ2h0IFN5c3RlbQoKQSBwbHVnLWFuZC1wbGF5IEdpdEh1YiBBY3Rpb25zIHdvcmtmbG93IHRoYXQgYXV0b21hdGVzIHlvdXIgUHVsbCBSZXF1ZXN0IHByb2Nlc3MKdXNpbmcgYSBzaW1wbGUgdHJhZmZpYyBsaWdodCBsYWJlbCBzeXN0ZW0uIENvcHkgb25lIGZpbGUgaW50byB5b3VyIHJlcG8gYW5kIHlvdSdyZSBkb25lLgoKfCBMYWJlbCAgICAgICAgIHwgV2hhdCBoYXBwZW5zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8CnwtLS0tLS0tLS0tLS0tLS18LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tfAp8IGByZWQtbGlnaHRgICAgfCBSZXZpZXcgaXMgYXV0b21hdGljYWxseSByZXF1ZXN0ZWQgYmVmb3JlIG1lcmdpbmcgICAgICAgIHwKfCBgZ3JlZW4tbGlnaHRgIHwgUFIgYXV0by1tZXJnZXMgb25jZSBhbGwgQ0kgY2hlY2tzIHBhc3MgICAgICAgICAgICAgICAgICB8CnwgYHllbGxvdy1saWdodGB8IFBSIGlzIGZsYWdnZWQgZm9yIG1hbnVhbCBhdHRlbnRpb24gLSBubyBhdXRvbWF0aW9uICAgICAgfAp8ICoobm8gbGFiZWwpKiAgfCBQUiBpcyBCTE9DS0VEIHVudGlsIGEgdmFsaWQgbGFiZWwgaXMgYWRkZWQgICAgICAgICAgICAgIHwKCi0tLQoKIyMgU2V0dXAgLSAzIFN0ZXBzCgojIyMgU3RlcCAxIC0gQ3JlYXRlIHRoZSBMYWJlbHMKCkluIHlvdXIgcmVwb3NpdG9yeSBnbyB0byAqKklzc3VlcyA+IExhYmVscyA+IE5ldyBsYWJlbCoqIGFuZCBjcmVhdGUgdGhlc2UgdGhyZWU6Cgp8IExhYmVsIG5hbWUgICAgIHwgU3VnZ2VzdGVkIGNvbG9yIHwgUHVycG9zZSAgICAgICAgICAgICAgICAgICAgICB8CnwtLS0tLS0tLS0tLS0tLS0tfC0tLS0tLS0tLS0tLS0tLS0tfC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLXwKfCBgcmVkLWxpZ2h0YCAgICB8IGAjRUUwNzAxYCAgICAgICB8IE5lZWRzIHJldmlldyBiZWZvcmUgbWVyZ2luZyAgfAp8IGBncmVlbi1saWdodGAgIHwgYCMwMDc1Q0FgICAgICAgIHwgU2FmZSB0byBhdXRvLW1lcmdlICAgICAgICAgICB8CnwgYHllbGxvdy1saWdodGAgfCBgI0U0RTY2OWAgICAgICAgfCBDYXV0aW9uIC0gbWVyZ2UgbWFudWFsbHkgICAgIHwKCj4gKipJbXBvcnRhbnQ6KiogTGFiZWwgbmFtZXMgYXJlIGNhc2Utc2Vuc2l0aXZlLiBVc2UgbG93ZXJjYXNlIGV4YWN0bHkgYXMgc2hvd24gYWJvdmUuCgotLS0KCiMjIyBTdGVwIDIgLSBFbmFibGUgQXV0by1NZXJnZSBpbiBSZXBvIFNldHRpbmdzCgo+IFJlcXVpcmVkIGZvciBgZ3JlZW4tbGlnaHRgIHRvIHdvcmsuIElmIHlvdSBza2lwIHRoaXMsIGdyZWVuLWxpZ2h0IFBScyB3aWxsIGZhaWwKPiB3aXRoIGEgY2xlYXIgZXJyb3IgbWVzc2FnZSBwb2ludGluZyB5b3UgYmFjayBoZXJlLgoKMS4gR28gdG8geW91ciByZXBvc2l0b3J5ICoqU2V0dGluZ3MgPiBHZW5lcmFsKioKMi4gU2Nyb2xsIHRvIHRoZSAqKlB1bGwgUmVxdWVzdHMqKiBzZWN0aW9uCjMuIENoZWNrICoqIkFsbG93IGF1dG8tbWVyZ2UiKioKCj4gWW91IG11c3QgYmUgYSByZXBvc2l0b3J5ICoqQWRtaW4qKiB0byBjaGFuZ2UgdGhpcyBzZXR0aW5nLgoKLS0tCgojIyMgU3RlcCAzIC0gQ29weSB0aGUgV29ya2Zsb3cgRmlsZQoKMS4gSW4geW91ciByZXBvc2l0b3J5LCBjcmVhdGUgdGhlIHBhdGggYC5naXRodWIvd29ya2Zsb3dzL2AgaWYgaXQgZG9lcyBub3QgZXhpc3QKMi4gQ3JlYXRlIGEgbmV3IGZpbGUgYXQgYC5naXRodWIvd29ya2Zsb3dzL3RyYWZmaWMtbGlnaHQueW1sYAozLiBDb3B5IHRoZSBmdWxsIGNvbnRlbnRzIG9mIFtgLmdpdGh1Yi93b3JrZmxvd3MvdHJhZmZpYy1saWdodC55bWxgXSguLy5naXRodWIvd29ya2Zsb3dzL3RyYWZmaWMtbGlnaHQueW1sKSBpbnRvIGl0CjQuIENvbW1pdCBhbmQgcHVzaCB0byB5b3VyIGRlZmF1bHQgYnJhbmNoIChgbWFpbmAgb3IgYG1hc3RlcmApCgo+IEdpdEh1YiBBY3Rpb25zIGFjdGl2YXRlcyBhdXRvbWF0aWNhbGx5LiBObyBmdXJ0aGVyIGNvbmZpZ3VyYXRpb24gbmVlZGVkLgoKLS0tCgojIyBIb3cgSXQgV29ya3MKCiMjIyBObyBMYWJlbCAtPiBQUiBCbG9ja2VkCldoZW4gYSBQUiBpcyBvcGVuZWQgd2l0aG91dCBhIHRyYWZmaWMgbGlnaHQgbGFiZWwsIHRoZSBHaXRIdWIgQWN0aW9ucyBjaGVjayAqKmZhaWxzKioKYW5kIGJsb2NrcyB0aGUgbWVyZ2UuIFRoZSBkZXZlbG9wZXIgbXVzdCBhZGQgYSB2YWxpZCBsYWJlbCB0byBwcm9jZWVkLgoKIyMjIGByZWQtbGlnaHRgIC0+IFJldmlldyBSZXF1ZXN0ZWQKQSByZXZpZXcgaXMgYXV0b21hdGljYWxseSByZXF1ZXN0ZWQgZnJvbSB0aGUgKipyZXBvc2l0b3J5IG93bmVyKiouCgoqKldhbnQgdG8gY3VzdG9taXNlIHdobyBnZXRzIHRoZSByZXZpZXc/KioKT3BlbiBgLmdpdGh1Yi93b3JrZmxvd3MvdHJhZmZpYy1saWdodC55bWxgIGFuZCB1cGRhdGUgdGhlIHJldmlld2VycyBsaW5lOgpgYGB5YW1sCiMgU3BlY2lmaWMgdXNlcnM6CnJldmlld2VyczogWydhbGljZScsICdib2InXQoKIyBBIEdpdEh1YiB0ZWFtICh1c2UgdGhlIHRlYW0gc2x1Zywgbm90IHRoZSBkaXNwbGF5IG5hbWUpOgp0ZWFtX3Jldmlld2VyczogWydiYWNrZW5kLXRlYW0nXQpgYGAKCiMjIyBgZ3JlZW4tbGlnaHRgIC0+IEF1dG8tTWVyZ2UgRW5hYmxlZApHaXRIdWIncyBuYXRpdmUgYXV0by1tZXJnZSBpcyBhY3RpdmF0ZWQuIFRoZSBQUiBtZXJnZXMgYXV0b21hdGljYWxseSBvbmNlCmFsbCByZXF1aXJlZCBzdGF0dXMgY2hlY2tzIHBhc3MuCgojIyMgYHllbGxvdy1saWdodGAgLT4gTWFudWFsIE1lcmdlIFJlcXVpcmVkClRoZSBQUiBwYXNzZXMgdmFsaWRhdGlvbiBidXQgbm8gYXV0b21hdGlvbiBydW5zLiBBIGh1bWFuIG11c3QgcmV2aWV3IGFuZAptZXJnZSBpdCBtYW51YWxseS4KCi0tLQoKIyMgUmVwb3NpdG9yeSBTdHJ1Y3R1cmUKCmBgYAouZ2l0aHViLwogIHdvcmtmbG93cy8KICAgIHRyYWZmaWMtbGlnaHQueW1sICAgPC0gVGhlIG9ubHkgZmlsZSB5b3UgbmVlZCB0byBjb3B5IGludG8geW91ciByZXBvClJFQURNRS5tZCAgICAgICAgICAgICAgIDwtIFRoaXMgZmlsZQpVU0FHRS5tZCAgICAgICAgICAgICAgICA8LSBEZXRhaWxlZCBzZXR1cCwgY3VzdG9taXNhdGlvbiBhbmQgdHJvdWJsZXNob290aW5nCkNPTlRSSUJVVElORy5tZCAgICAgICAgIDwtIEhvdyB0byBjb250cmlidXRlIGltcHJvdmVtZW50cwpMSUNFTlNFICAgICAgICAgICAgICAgICA8LSBNSVQgTGljZW5zZQpgYGAKCi0tLQoKIyMgRnVsbCBEb2N1bWVudGF0aW9uCgpTZWUgW1VTQUdFLm1kXSguL1VTQUdFLm1kKSBmb3IgZGV0YWlsZWQgc2V0dXAgaW5zdHJ1Y3Rpb25zLCBjdXN0b21pc2F0aW9uIG9wdGlvbnMsCmFuZCBhIGZ1bGwgdHJvdWJsZXNob290aW5nIGd1aWRlLgoKIyMgTGljZW5zZQoKW01JVF0oLi9MSUNFTlNFKSAtIGZyZWUgdG8gdXNlIGluIGFueSByZXBvc2l0b3J5LCBjb21tZXJjaWFsIG9yIHBlcnNvbmFsLg==
+# PR Traffic Light System
+
+A plug-and-play GitHub Actions workflow that automates your Pull Request process
+using a simple traffic light label system. Copy one file into your repo and you're done.
+
+| Label          | What happens                                            |
+|----------------|---------------------------------------------------------|
+| `red-light`    | Review is automatically requested before merging        |
+| `green-light`  | PR auto-merges once all CI checks pass                  |
+| `yellow-light` | PR is flagged for manual attention - no automation      |
+| *(no label)*   | PR is BLOCKED until a valid label is added              |
+
+---
+
+## Setup - 3 Steps
+
+### Step 1 - Create the Labels
+
+In your repository go to **Issues > Labels > New label** and create these three:
+
+| Label name     | Suggested color | Purpose                      |
+|----------------|-----------------|------------------------------|
+| `red-light`    | `#EE0701`       | Needs review before merging  |
+| `green-light`  | `#0075CA`       | Safe to auto-merge           |
+| `yellow-light` | `#E4E669`       | Caution - merge manually     |
+
+> **Important:** Label names are case-sensitive. Use lowercase exactly as shown above.
+
+---
+
+### Step 2 - Enable Auto-Merge in Repo Settings
+
+> Required for `green-light` to work. If you skip this, green-light PRs will fail
+> with a clear error message pointing you back here.
+
+1. Go to your repository **Settings > General**
+2. Scroll to the **Pull Requests** section
+3. Check **"Allow auto-merge"**
+
+> You must be a repository **Admin** to change this setting.
+
+---
+
+### Step 3 - Copy the Workflow File
+
+1. In your repository, create the path `.github/workflows/` if it does not exist
+2. Create a new file at `.github/workflows/traffic-light.yml`
+3. Copy the full contents of [`.github/workflows/traffic-light.yml`](./.github/workflows/traffic-light.yml) into it
+4. Commit and push to your default branch (`main` or `master`)
+
+> GitHub Actions activates automatically. No further configuration needed.
+
+---
+
+## How It Works
+
+### No Label -> PR Blocked
+When a PR is opened without a traffic light label, the GitHub Actions check **fails**
+and blocks the merge. The developer must add a valid label to proceed.
+
+### `red-light` -> Review Requested
+A review is automatically requested from the **repository owner**.
+
+**Want to customise who gets the review?**
+Open `.github/workflows/traffic-light.yml` and update the reviewers line:
+```yaml
+# Specific users:
+reviewers: ['alice', 'bob']
+
+# A GitHub team (use the team slug, not the display name):
+team_reviewers: ['backend-team']
+```
+
+### `green-light` -> Auto-Merge Enabled
+GitHub's native auto-merge is activated. The PR merges automatically once
+all required status checks pass.
+
+### `yellow-light` -> Manual Merge Required
+The PR passes validation but no automation runs. A human must review and
+merge it manually.
+
+---
+
+## Repository Structure
+
+```
+.github/
+  workflows/
+    traffic-light.yml   <- The only file you need to copy into your repo
+README.md               <- This file
+USAGE.md                <- Detailed setup, customisation and troubleshooting
+CONTRIBUTING.md         <- How to contribute improvements
+LICENSE                 <- MIT License
+```
+
+---
+
+## Full Documentation
+
+See [USAGE.md](./USAGE.md) for detailed setup instructions, customisation options,
+and a full troubleshooting guide.
+
+## License
+
+[MIT](./LICENSE) - free to use in any repository, commercial or personal.
