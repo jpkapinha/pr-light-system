@@ -48,7 +48,29 @@ It must be explicitly enabled per repository.
 
 ---
 
-### Step 3 - Add the Workflow File
+### Step 3 - Enable Branch Protection on `main` ⚠️
+
+> **This step is required for auto-merge to work.** GitHub only allows
+> auto-merge on PRs that target a branch with protection rules enabled.
+> Without this, the auto-merge API call will be rejected regardless of
+> permissions or workflow configuration.
+
+1. Go to **Settings > Branches**
+2. Click **Add branch protection rule**
+3. Set **Branch name pattern** to `main` (or your default branch name)
+4. ✅ Check **Require status checks to pass before merging**
+5. In the search box, find and add `Check Traffic Light Label` as a required status check
+6. ✅ Check **Require branches to be up to date before merging**
+7. Click **Save changes**
+
+> **Why is this required?** GitHub's auto-merge feature is intentionally
+> gated behind branch protection. It is designed to prevent accidental merges
+> and only activates when there are enforced checks in place. This is a GitHub
+> platform constraint, not a limitation of this workflow.
+
+---
+
+### Step 4 - Add the Workflow File
 
 This is the **only file** you need to copy into your repository.
 
@@ -86,6 +108,10 @@ team_reviewers: ['security-team']
 
 > For team reviewers, the team must have at least Read access to the repository.
 
+> **Note:** GitHub does not allow requesting a review from the PR author themselves.
+> If the repo owner opens a PR, the red-light review request will fail. Add at least
+> one collaborator as a reviewer to avoid this.
+
 ---
 
 ### Change the merge method (green-light)
@@ -115,11 +141,17 @@ To change it, find the `mergeMethod` line in the workflow and replace the value:
 ## Troubleshooting
 
 **Green-light auto-merge is failing with a settings error**
-Go to Settings > General > Pull Requests and enable "Allow auto-merge".
+Go to **Settings > General > Pull Requests** and enable "Allow auto-merge".
+
+**Green-light auto-merge fails even with "Allow auto-merge" enabled**
+Branch protection rules are missing on `main`. Follow Step 3 above.
+Auto-merge requires at least one branch protection rule to be active —
+this is enforced by GitHub at the platform level.
 
 **Red-light review request fails**
 Check that the reviewer username is correct and that they have at least
-Read access to the repository.
+Read access to the repository. Also note that GitHub does not allow the
+PR author to be their own reviewer — add a collaborator to the `reviewers` list.
 
 **The workflow is not running at all**
 Confirm the file is at exactly `.github/workflows/traffic-light.yml`.
@@ -130,7 +162,7 @@ Label names are case-sensitive. Confirm you are using exactly:
 `red-light`, `green-light`, or `yellow-light` (all lowercase, hyphenated).
 
 **GitHub Actions is not enabled on the repository**
-Go to Settings > Actions > General and set it to
+Go to **Settings > Actions > General** and set it to
 "Allow all actions and reusable workflows".
 
 ---
