@@ -1,0 +1,52 @@
+name: Traffic Light PR Automation
+
+on:
+  pull_request:
+    types: [labeled, opened, synchronize]
+
+jobs:
+  traffic-handle:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+      
+    steps:
+      # --- RED LIGHT: Request Review ---
+      - name: Request Review for Red Light
+        if: contains(github.event.pull_request.labels.*.name, 'red-light')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: [context.repo.owner] 
+            })
+
+      # --- GREEN LIGHT: Auto-Merge ---
+      - name: Enable Auto-Merge for Green Light
+        if: contains(github.event.pull_request.labels.*.name, 'green-light')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const query = `
+                mutation($projectId: ID!) {
+                  enablePullRequestAutoMerge(input: {
+                    pullRequestId: $projectId,
+                    mergeMethod: MERGE
+                  }) {
+                    pullRequest { autoMergeRequest { enabledAt } }
+                  }
+                }`;
+              const variables = {
+                projectId: context.payload.pull_request.node_id
+              };
+              await github.graphql(query, variables);
+              console.log("Auto-merge enabled for Green Light PR");
+            } catch (error) {
+              console.error("Failed to enable auto-merge. Is 'Allow auto-merge' enabled in repo settings?");
+              throw error;
+            }
