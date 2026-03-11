@@ -52,6 +52,15 @@ In your repository go to **Issues > Labels > New label** and create these three:
 
 ---
 
+### Step 4 (Optional) - Enable AI Auto-Labeling
+
+Want the system to automatically apply the correct label based on the code diff and your custom rules? 
+Just add your OpenRouter API key as a repository secret and provide a `.github/ai-rules.csv`. 
+
+> See [USAGE.md](./USAGE.md#ai-auto-labeling) for the complete 2-step setup guide.
+
+---
+
 ## How It Works
 
 ### No Label -> PR Blocked

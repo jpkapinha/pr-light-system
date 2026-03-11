@@ -127,6 +127,31 @@ To change it, find the `mergeMethod` line in the workflow and replace the value:
 
 ---
 
+### AI Auto-Labeling
+
+You can configure the workflow to use OpenRouter to analyze the PR diff and automatically apply the correct label on your behalf. If the AI applies a label, the rest of the automation (`green-light` auto-merge, `red-light` review request) continues exactly as if a human had applied it.
+
+**Step 1. Add your API Key**
+1. Go to your repository **Settings > Secrets and variables > Actions**
+2. Click **New repository secret**
+3. Name: `OPENROUTER_API_KEY`
+4. Secret: Paste your valid OpenRouter API Key.
+
+**Step 2. (Optional) Provide Custom Rules/Examples**
+By default, the AI is prompted with sensible defaults (e.g. docs = green, core logic = red). To teach the AI your specific repository rules, create a file at `.github/ai-rules.csv` containing historical examples:
+
+```csv
+PR Title; Files Changed; Correct Label; Reason
+Update README; *.md; green-light; Documentation only
+Add user table; db/schema.sql; red-light; Database migrations require review
+Fix button color; src/Button.css; green-light; Safe UI styling change
+```
+*Note: The AI reads this file plaintext, so any delimiter (commas, semicolons) is fine.*
+
+> **Bypass the AI:** If a human manually applies a traffic light label *before* the action runs (or immediately upon PR creation), the AI will gracefully skip itself and respect the human's choice.
+
+---
+
 ## Label Behaviour Reference
 
 | Label          | Automated action                                                                        |

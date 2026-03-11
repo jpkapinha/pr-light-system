@@ -6,11 +6,130 @@ on:
 
 jobs:
 
-  # JOB 1 - SAFETY CATCH
+  # JOB 1 - AI LABEL ASSIGNMENT (OPTIONAL)
+  # Automatically applies a traffic light label using an LLM if one is not already present,
+  # but ONLY if the OPENROUTER_API_KEY secret is provided.
+  ai-label-assignment:
+    name: "AI Auto-Label Assignment"
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    # Check if a traffic light label is already present. If it is, skip this job.
+    # Only run on open or sync (new commits) to avoid infinite loops on label assignment.
+    if: |
+      (github.event.action == 'opened' || github.event.action == 'synchronize') &&
+      !contains(github.event.pull_request.labels.*.name, 'red-light') &&
+      !contains(github.event.pull_request.labels.*.name, 'yellow-light') &&
+      !contains(github.event.pull_request.labels.*.name, 'green-light')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch PR diff & Analyze with AI
+        uses: actions/github-script@v7
+        env:
+          OPENROUTER_API_KEY: "${{ secrets.OPENROUTER_API_KEY }}"
+        with:
+          script: |
+            // Gracefully skip if no API key is provided
+            if (!process.env.OPENROUTER_API_KEY) {
+              console.log('No OPENROUTER_API_KEY secret found. Skipping AI auto-labeling. Falling back to manual labeling.');
+              return;
+            }
+
+            const fs = require('fs');
+            
+            // 1. Fetch the code diff
+            const diffResponse = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              mediaType: {
+                format: 'diff'
+              }
+            });
+            let diffContent = diffResponse.data;
+            
+            // Truncate diff if it's monstrously huge (e.g., > 100k characters)
+            if (diffContent.length > 100000) {
+              diffContent = diffContent.substring(0, 100000) + '\n... [DIFF TRUNCATED]';
+            }
+
+            // 2. Check for custom rules/examples in the repository
+            let customRules = '';
+            const rulesPath = '.github/ai-rules.csv';
+            if (fs.existsSync(rulesPath)) {
+               customRules = `\nHere are historical examples and rules (from .github/ai-rules.csv) to guide your decision:\n${fs.readFileSync(rulesPath, 'utf8')}\n`;
+               console.log('Found custom AI rules in .github/ai-rules.csv');
+            }
+
+            // 3. Prepare Prompt
+            const systemPrompt = `You are a strict, objective PR reviewer.
+            Your ONLY job is to assign a risk label based on the provided code diff.
+            The allowed labels are exactly: "green-light", "yellow-light", or "red-light".
+            - green-light: Very low risk (docs, css, minor test fixes, pure functions).
+            - red-light: High risk (core logic changes, db migrations, critical config, large refactors).
+            - yellow-light: Moderate risk or anything in between.${customRules}
+            Respond with ONLY ONE of the three labels and absolutely nothing else. No explanation.`;
+
+            const userPrompt = `Pull Request Title: ${context.payload.pull_request.title}\nDescription: ${context.payload.pull_request.body || ''}\n\nDiff:\n${diffContent}`;
+
+            console.log('Calling OpenRouter API...');
+            
+            // 4. Call OpenRouter API
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`
+              },
+              body: JSON.stringify({
+                model: 'openai/gpt-4o-mini', // Fast, cheap, capable of label routing via OpenRouter
+                temperature: 0.1,
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userPrompt }
+                ]
+              })
+            });
+
+            if (!response.ok) {
+               const errText = await response.text();
+               console.error('OpenRouter API Error:', errText);
+               core.setFailed('Failed to fetch from OpenRouter');
+               return;
+            }
+
+            const data = await response.json();
+            const aiLabel = data.choices[0].message.content.trim().toLowerCase();
+            
+            const validLabels = ['red-light', 'yellow-light', 'green-light'];
+            if (!validLabels.includes(aiLabel)) {
+               console.error(`AI generated invalid label: "${aiLabel}". Skipping assignment.`);
+               return;
+            }
+
+            console.log(`AI decided on label: ${aiLabel}. Proceeding to assign constraint.`);
+
+            // 5. Apply the label to the PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: [aiLabel]
+            });
+            
+            console.log(`Successfully assigned label "${aiLabel}" to PR #${context.payload.pull_request.number}`);
+
+  # JOB 2 - SAFETY CATCH
   # Blocks the PR if no valid traffic light label is present.
   validate-label:
     name: "Check Traffic Light Label"
     runs-on: ubuntu-latest
+    # Wait for AI labeling to finish (or skip). The always() ensures this runs even if Job 1 was skipped.
+    needs: ai-label-assignment
+    if: always()
     steps:
       - name: Verify a valid label is present
         uses: actions/github-script@v7
@@ -32,8 +151,8 @@ jobs:
               console.log('Valid label found: "' + found + '" - proceeding.');
             }
 
-  # JOB 2 - AUTOMATION
-  # Only runs after Job 1 passes.
+  # JOB 3 - AUTOMATION
+  # Only runs after Job 2 passes.
   traffic-automation:
     name: "Run Traffic Light Action"
     needs: validate-label
