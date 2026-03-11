@@ -131,11 +131,13 @@ To change it, find the `mergeMethod` line in the workflow and replace the value:
 
 You can configure the workflow to use OpenRouter to analyze the PR diff and automatically apply the correct label on your behalf. If the AI applies a label, the rest of the automation (`green-light` auto-merge, `red-light` review request) continues exactly as if a human had applied it.
 
-**Step 1. Add your API Key**
-1. Go to your repository **Settings > Secrets and variables > Actions**
-2. Click **New repository secret**
-3. Name: `OPENROUTER_API_KEY`
-4. Secret: Paste your valid OpenRouter API Key.
+**Step 1. Get and Add your API Key**
+1. Go to [OpenRouter](https://openrouter.ai/) and create an account.
+2. Navigate to your **Keys** settings and generate a new API Key.
+3. In your GitHub repository, go to **Settings > Secrets and variables > Actions**
+4. Click **New repository secret**
+5. Name: `OPENROUTER_API_KEY`
+6. Secret: Paste your valid OpenRouter API Key.
 
 **Step 2. (Optional) Provide Custom Rules/Examples**
 By default, the AI is prompted with sensible defaults (e.g. docs = green, core logic = red). To teach the AI your specific repository rules, create a file at `.github/ai-rules.csv` containing historical examples:
