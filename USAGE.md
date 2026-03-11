@@ -27,7 +27,7 @@ Without a label, the system will block the PR automatically.
 | Label name     | Suggested hex color | Purpose                                   |
 |----------------|---------------------|-------------------------------------------|
 | `red-light`    | `#EE0701`           | Triggers automatic review request         |
-| `green-light`  | `#0075CA`           | Triggers automatic merge when CI passes   |
+| `green-light`  | `#0E8A16`           | Triggers automatic merge when CI passes   |
 | `yellow-light` | `#E4E669`           | Visual flag only - manual action required |
 
 > **Warning:** Label names are case-sensitive. Use lowercase exactly as shown.

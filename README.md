@@ -21,7 +21,7 @@ In your repository go to **Issues > Labels > New label** and create these three:
 | Label name     | Suggested color | Purpose                      |
 |----------------|-----------------|------------------------------|
 | `red-light`    | `#EE0701`       | Needs review before merging  |
-| `green-light`  | `#0075CA`       | Safe to auto-merge           |
+| `green-light`  | `#0E8A16`       | Safe to auto-merge           |
 | `yellow-light` | `#E4E669`       | Caution - merge manually     |
 
 > **Important:** Label names are case-sensitive. Use lowercase exactly as shown above.
