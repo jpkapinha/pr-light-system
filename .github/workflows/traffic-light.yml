@@ -135,7 +135,14 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const labels = context.payload.pull_request.labels.map(l => l.name);
+            // Fetch labels live from the API to avoid stale event payload
+            // (the AI job may have applied a label after this workflow was triggered)
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const labels = pr.labels.map(l => l.name);
             const validLabels = ['red-light', 'green-light', 'yellow-light'];
             const found = labels.find(l => validLabels.includes(l));
 
