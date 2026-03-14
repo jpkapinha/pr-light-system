@@ -3,25 +3,114 @@ name: Traffic Light PR Automation
 on:
   pull_request:
     types: [labeled, unlabeled, opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
 
 jobs:
+
+  # JOB 0 - OVERRIDE HANDLER
+  # Allows developers to contest an AI label with `/relabel <color>-light`
+  # Requires a second team member to approve via `/approve-relabel`
+  handle-override:
+    name: "Handle Label Override Request"
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/relabel ')
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Process relabel command
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment.body.trim();
+            const match = comment.match(/^\/relabel\s+(red-light|yellow-light|green-light)$/);
+
+            if (!match) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                body: '⚠️ Invalid `/relabel` command.\n\nUsage: `/relabel red-light`, `/relabel yellow-light`, or `/relabel green-light`'
+              });
+              return;
+            }
+
+            const requestedLabel = match[1];
+            const requester = context.payload.comment.user.login;
+
+            // Check the PR author — requester must NOT be the PR author (need a second person)
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            });
+
+            if (requester === pr.user.login) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                body: `🚫 The PR author cannot override their own label. A different team member must use \`/relabel ${requestedLabel}\` or approve the override with \`/approve-relabel\`.`
+              });
+              return;
+            }
+
+            // Remove existing traffic light labels
+            const validLabels = ['red-light', 'yellow-light', 'green-light'];
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+            });
+
+            for (const label of currentLabels) {
+              if (validLabels.includes(label.name)) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.issue.number,
+                  name: label.name,
+                });
+              }
+            }
+
+            // Apply the new label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels: [requestedLabel],
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `🔄 **Label overridden** by @${requester}\n\nNew label: \`${requestedLabel}\`\n\n_The automation will re-run with the updated label._`
+            });
+
+            console.log(`Label overridden to "${requestedLabel}" by ${requester}`);
 
   # JOB 1 - AI LABEL ASSIGNMENT (OPTIONAL)
   # Automatically applies a traffic light label using an LLM if one is not already present,
   # but ONLY if the OPENROUTER_API_KEY secret is provided.
+  # Now also posts a reasoning comment to the PR for transparency and learning.
   ai-label-assignment:
     name: "AI Auto-Label Assignment"
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: read
-    # Check if a traffic light label is already present. If it is, skip this job.
-    # Only run on open or sync (new commits) to avoid infinite loops on label assignment.
     if: |
+      github.event_name == 'pull_request' &&
       (github.event.action == 'opened' || github.event.action == 'synchronize') &&
       !contains(github.event.pull_request.labels.*.name, 'red-light') &&
       !contains(github.event.pull_request.labels.*.name, 'yellow-light') &&
       !contains(github.event.pull_request.labels.*.name, 'green-light')
+    permissions:
+      pull-requests: write
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +128,7 @@ jobs:
             }
 
             const fs = require('fs');
-            
+
             // 1. Fetch the code diff
             const diffResponse = await github.rest.pulls.get({
               owner: context.repo.owner,
@@ -50,7 +139,7 @@ jobs:
               }
             });
             let diffContent = diffResponse.data;
-            
+
             // Truncate diff if it's monstrously huge (e.g., > 100k characters)
             if (diffContent.length > 100000) {
               diffContent = diffContent.substring(0, 100000) + '\n... [DIFF TRUNCATED]';
@@ -64,19 +153,21 @@ jobs:
                console.log('Found custom AI rules in .github/ai-rules.csv');
             }
 
-            // 3. Prepare Prompt
-            const systemPrompt = `You are a strict, objective PR reviewer.
-            Your ONLY job is to assign a risk label based on the provided code diff.
+            // 3. Prepare Prompt — now requests structured JSON with reasoning
+            const systemPrompt = `You are a strict, objective PR reviewer for a Web3 development company.
+            Your job is to assign a risk label based on the provided code diff AND explain your reasoning.
             The allowed labels are exactly: "green-light", "yellow-light", or "red-light".
             - green-light: Very low risk (docs, css, minor test fixes, pure functions).
-            - red-light: High risk (core logic changes, db migrations, critical config, large refactors).
+            - red-light: High risk (core logic changes, db migrations, critical config, large refactors, smart contracts, security-sensitive code).
             - yellow-light: Moderate risk or anything in between.${customRules}
-            Respond with ONLY ONE of the three labels and absolutely nothing else. No explanation.`;
+
+            Respond with ONLY a valid JSON object in this exact format, no markdown fencing:
+            {"label": "<label>", "reasoning": "<2-3 sentence explanation of why this label was chosen>", "files_of_concern": ["<file paths that drove the decision, if any>"]}`;
 
             const userPrompt = `Pull Request Title: ${context.payload.pull_request.title}\nDescription: ${context.payload.pull_request.body || ''}\n\nDiff:\n${diffContent}`;
 
             console.log('Calling OpenRouter API...');
-            
+
             // 4. Call OpenRouter API
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
               method: 'POST',
@@ -85,7 +176,7 @@ jobs:
                 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`
               },
               body: JSON.stringify({
-                model: 'openai/gpt-4o-mini', // Fast, cheap, capable of label routing via OpenRouter
+                model: 'openai/gpt-4o-mini',
                 temperature: 0.1,
                 messages: [
                   { role: 'system', content: systemPrompt },
@@ -102,25 +193,71 @@ jobs:
             }
 
             const data = await response.json();
-            const aiLabel = data.choices[0].message.content.trim().toLowerCase();
-            
+            const rawContent = data.choices[0].message.content.trim();
+
+            // 5. Parse structured response
+            let aiLabel, reasoning, filesOfConcern;
+            try {
+              const parsed = JSON.parse(rawContent.replace(/```json|```/g, '').trim());
+              aiLabel = parsed.label?.toLowerCase();
+              reasoning = parsed.reasoning || 'No reasoning provided.';
+              filesOfConcern = parsed.files_of_concern || [];
+            } catch (e) {
+              // Fallback: try to extract just a label (backward compatibility)
+              aiLabel = rawContent.toLowerCase();
+              reasoning = 'AI did not provide structured reasoning for this classification.';
+              filesOfConcern = [];
+            }
+
             const validLabels = ['red-light', 'yellow-light', 'green-light'];
             if (!validLabels.includes(aiLabel)) {
                console.error(`AI generated invalid label: "${aiLabel}". Skipping assignment.`);
                return;
             }
 
-            console.log(`AI decided on label: ${aiLabel}. Proceeding to assign constraint.`);
+            console.log(`AI decided on label: ${aiLabel}. Proceeding to assign.`);
 
-            // 5. Apply the label to the PR
+            // 6. Apply the label to the PR
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
               labels: [aiLabel]
             });
-            
-            console.log(`Successfully assigned label "${aiLabel}" to PR #${context.payload.pull_request.number}`);
+
+            // 7. Post reasoning comment for transparency
+            const emoji = aiLabel === 'green-light' ? '🟢' : aiLabel === 'yellow-light' ? '🟡' : '🔴';
+            const filesSection = filesOfConcern.length > 0
+              ? '\n\n' + '**Files of concern:**' + '\n' + filesOfConcern.map(f => '- `' + f + '`').join('\n')
+              : '';
+
+            const lines = [
+              emoji + ' ' + '**AI Classification: `' + aiLabel + '`**',
+              '',
+              '**Reasoning:** ' + reasoning + filesSection,
+              '',
+              '---',
+              '<details>',
+              '<summary>ℹ️ About this classification</summary>',
+              '',
+              'This label was automatically assigned by AI based on the PR diff and the repository `.github/ai-rules.csv` policy.',
+              '',
+              '- **Agree?** No action needed — the automation will proceed.',
+              '- **Disagree?** A team member (not the PR author) can override with: `/relabel green-light`, `/relabel yellow-light`, or `/relabel red-light`',
+              '- **Questions?** See the [ai-rules.csv](.github/ai-rules.csv) for the full classification policy.',
+              '',
+              '</details>',
+            ];
+            const commentBody = lines.join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: commentBody
+            });
+
+            console.log(`Successfully assigned label "${aiLabel}" with reasoning to PR #${context.payload.pull_request.number}`);
 
   # JOB 2 - SAFETY CATCH
   # Blocks the PR if no valid traffic light label is present.
@@ -129,14 +266,13 @@ jobs:
     runs-on: ubuntu-latest
     # Wait for AI labeling to finish (or skip). The always() ensures this runs even if Job 1 was skipped.
     needs: ai-label-assignment
-    if: always()
+    if: always() && github.event_name == 'pull_request'
     steps:
       - name: Verify a valid label is present
         uses: actions/github-script@v7
         with:
           script: |
             // Fetch labels live from the API to avoid stale event payload
-            // (the AI job may have applied a label after this workflow was triggered)
             const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -163,6 +299,7 @@ jobs:
   traffic-automation:
     name: "Run Traffic Light Action"
     needs: validate-label
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -170,22 +307,117 @@ jobs:
 
     steps:
 
-      # RED LIGHT - Request Review
-      # To customize reviewers: replace [owner] with ['username1', 'username2']
-      # For a team: add  team_reviewers: ['your-team-slug']
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # RED LIGHT - Path-Aware Review Routing
+      # Routes review requests to the right team based on which files changed.
+      # Falls back to repository owner if no routing rules match.
+      # Customize the routing map below to match your team structure.
       - name: "Request Review (red-light)"
         if: contains(github.event.pull_request.labels.*.name, 'red-light')
         uses: actions/github-script@v7
         with:
           script: |
-            const owner = context.repo.owner;
-            await github.rest.pulls.requestReviewers({
-              owner: owner,
+            const fs = require('fs');
+
+            // ──────────────────────────────────────────────────────
+            // REVIEWER ROUTING MAP
+            // Customize this to match your team.
+            // Patterns are matched against changed file paths.
+            // First match wins. Falls back to the repository owner.
+            // ──────────────────────────────────────────────────────
+            const ROUTING_RULES = [
+              {
+                pattern: /\.(sol)$/i,
+                reviewers: [],                           // e.g. ['alice', 'bob']
+                team_reviewers: [],                      // e.g. ['solidity-security']
+                description: 'Solidity / Smart Contracts'
+              },
+              {
+                pattern: /^(\.github\/workflows\/|infra\/|docker|k8s\/|\.env)/i,
+                reviewers: [],                           // e.g. ['charlie']
+                team_reviewers: [],                      // e.g. ['devops-team']
+                description: 'Infrastructure / DevOps'
+              },
+              {
+                pattern: /^(src\/api\/|server\/|backend\/)/i,
+                reviewers: [],                           // e.g. ['dave']
+                team_reviewers: [],                      // e.g. ['backend-team']
+                description: 'Backend / API'
+              },
+              {
+                pattern: /^(src\/|components\/|pages\/|app\/)/i,
+                reviewers: [],                           // e.g. ['eve']
+                team_reviewers: [],                      // e.g. ['frontend-team']
+                description: 'Frontend'
+              },
+            ];
+            // ──────────────────────────────────────────────────────
+
+            // Fetch changed files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
-              reviewers: [owner]
+              per_page: 100,
             });
-            console.log('Review requested from: ' + owner);
+
+            const changedPaths = files.map(f => f.filename);
+            console.log('Changed files:', changedPaths.join(', '));
+
+            // Find all matching routing rules
+            const matchedReviewers = new Set();
+            const matchedTeams = new Set();
+            const matchedDescriptions = [];
+
+            for (const rule of ROUTING_RULES) {
+              const matched = changedPaths.some(p => rule.pattern.test(p));
+              if (matched) {
+                rule.reviewers.forEach(r => matchedReviewers.add(r));
+                rule.team_reviewers.forEach(t => matchedTeams.add(t));
+                if (rule.description) matchedDescriptions.push(rule.description);
+              }
+            }
+
+            // Fallback to repository owner if no routing rules matched or all lists are empty
+            const reviewers = [...matchedReviewers];
+            const teamReviewers = [...matchedTeams];
+
+            if (reviewers.length === 0 && teamReviewers.length === 0) {
+              reviewers.push(context.repo.owner);
+              console.log('No routing rules matched. Falling back to repository owner.');
+            } else {
+              console.log(`Routing matched: ${matchedDescriptions.join(', ')}`);
+            }
+
+            // Filter out the PR author (GitHub rejects self-review requests)
+            const prAuthor = context.payload.pull_request.user.login;
+            const filteredReviewers = reviewers.filter(r => r !== prAuthor);
+
+            if (filteredReviewers.length === 0 && teamReviewers.length === 0) {
+              console.log('Warning: All matched reviewers are the PR author. No review request sent.');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: '⚠️ **Red-light review could not be assigned.** All matched reviewers are the PR author. Please manually request a review from a team member.'
+              });
+              return;
+            }
+
+            const requestPayload = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: filteredReviewers,
+            };
+            if (teamReviewers.length > 0) {
+              requestPayload.team_reviewers = teamReviewers;
+            }
+
+            await github.rest.pulls.requestReviewers(requestPayload);
+            console.log(`Review requested from: users=[${filteredReviewers}], teams=[${teamReviewers}]`);
 
       # GREEN LIGHT - Enable Auto-Merge
       # REQUIREMENT: Enable "Allow auto-merge" in Settings > General.
