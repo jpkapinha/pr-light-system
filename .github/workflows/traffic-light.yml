@@ -9,8 +9,8 @@ on:
 jobs:
 
   # JOB 0 - OVERRIDE HANDLER
-  # Allows developers to contest an AI label with `/relabel <color>-light`
-  # Requires a second team member to approve via `/approve-relabel`
+  # Allows any team member (other than the PR author) to override a label with:
+  #   /relabel green-light  |  /relabel yellow-light  |  /relabel red-light
   handle-override:
     name: "Handle Label Override Request"
     runs-on: ubuntu-latest
@@ -20,6 +20,7 @@ jobs:
       startsWith(github.event.comment.body, '/relabel ')
     permissions:
       pull-requests: write
+      issues: write
       contents: read
     steps:
       - name: Process relabel command
@@ -54,7 +55,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.payload.issue.number,
-                body: `🚫 The PR author cannot override their own label. A different team member must use \`/relabel ${requestedLabel}\` or approve the override with \`/approve-relabel\`.`
+                body: `🚫 The PR author cannot override their own label. A different team member must post \`/relabel ${requestedLabel}\` to apply this change.`
               });
               return;
             }
@@ -307,9 +308,6 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       # RED LIGHT - Path-Aware Review Routing
       # Routes review requests to the right team based on which files changed.
       # Falls back to repository owner if no routing rules match.
@@ -319,8 +317,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-
             // ──────────────────────────────────────────────────────
             // REVIEWER ROUTING MAP
             // Customize this to match your team.

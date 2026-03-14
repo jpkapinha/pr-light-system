@@ -1,15 +1,14 @@
 # Contributing to PR Traffic Light System
 
-Thank you for your interest in improving this project! All contributions are welcome.
+Thank you for your interest in improving this project. All contributions are welcome.
 
 ---
 
 ## Ways to Contribute
 
-- Improve or clarify the documentation
 - Fix bugs or edge cases in the workflow logic
-- Add support for new automation patterns (e.g., auto-assign reviewers based on changed files)
-- Suggest new label types with meaningful automation
+- Improve or clarify documentation
+- Add new automation patterns (e.g. auto-assign reviewers based on changed files)
 - Propose updates to the classification policy (`ai-rules.csv`)
 - Report issues or unexpected behaviour via GitHub Issues
 
@@ -21,39 +20,51 @@ Thank you for your interest in improving this project! All contributions are wel
 2. **Create a branch**: `git checkout -b feature/your-improvement`
 3. **Make your changes** and test them
 4. **Commit** using [Conventional Commits](https://www.conventionalcommits.org/) format:
-   - `feat:` for new features or automation
-   - `fix:` for bug fixes
-   - `docs:` for documentation-only changes
-   - `policy:` for changes to `ai-rules.csv`
-5. **Open a Pull Request** and add a traffic light label:
 
-| Change type                                          | Label to use    |
-|------------------------------------------------------|-----------------|
-| Documentation, typos, formatting                     | `green-light`   |
-| Logic or workflow changes needing review              | `red-light`     |
-| Changes to `ai-rules.csv` (classification policy)    | `red-light`     |
-| Changes to `SECURITY.md`                             | `red-light`     |
-| Changes you want a second opinion on                 | `yellow-light`  |
+| Prefix     | Use for                                              |
+|------------|------------------------------------------------------|
+| `feat:`    | New features or automation                           |
+| `fix:`     | Bug fixes                                            |
+| `docs:`    | Documentation-only changes                           |
+| `policy:`  | Changes to `ai-rules.csv`                           |
+
+5. **Open a Pull Request** and apply the correct label:
+
+| Change type                                       | Label            |
+|---------------------------------------------------|------------------|
+| Documentation, typos, formatting                  | `green-light`    |
+| Logic or workflow changes                         | `red-light`      |
+| Changes to `ai-rules.csv`                        | `red-light`      |
+| Changes to `SECURITY.md`                         | `red-light`      |
+| Changes you want a second opinion on              | `yellow-light`   |
 
 ---
 
-## Updating the Classification Policy
+## Updating the Classification Policy (`ai-rules.csv`)
 
-The file `.github/ai-rules.csv` controls how PRs are automatically classified.
-Changes to this file have security implications and **must always be submitted
-as `red-light` PRs** reviewed by senior developers or managers.
+The file `.github/ai-rules.csv` controls how PRs are automatically classified by the AI. Changes here affect the security posture of every team that uses this system.
 
-When proposing a change to `ai-rules.csv`:
-- Explain why the current classification is incorrect or insufficient
-- Provide a real example PR that motivated the change
-- Consider whether the change affects multiple roles or categories
-- Check that new rules don't conflict with existing ones
+**Rules for policy changes:**
+- Always submitted as a `red-light` PR
+- Must be reviewed by a senior developer or manager before merging
+- Must include a justification explaining why the current classification is wrong
+- Should reference a real PR example that motivated the change
+- Must not conflict with existing rules
+
+When adding a new row, fill in all columns:
+- **Role** — which team role this applies to
+- **Category** — type of work
+- **Task Name** — specific task description (be precise)
+- **Traffic Light** — GREEN, YELLOW, or RED
+- **Justification** — why this risk level is correct
+- **Critical Analysis** — known edge cases or failure modes
+- **Nuance & Conditions** — when to upgrade or downgrade the level
 
 ---
 
 ## Override Mechanism
 
-If you disagree with a label on a PR, you can override it by commenting:
+If you disagree with a label on any PR, post a comment as a team member (not the PR author):
 
 ```
 /relabel green-light
@@ -61,7 +72,7 @@ If you disagree with a label on a PR, you can override it by commenting:
 /relabel red-light
 ```
 
-This must come from a team member **other than the PR author**.
+The system validates the command, checks you are not the PR author, removes the existing label, applies the new one, and re-runs automation. Self-overrides are always blocked.
 
 ---
 
@@ -69,6 +80,6 @@ This must come from a team member **other than the PR author**.
 
 | Label          | When to use                                              |
 |----------------|----------------------------------------------------------|
-| `red-light`    | Logic or workflow changes that need senior review         |
+| `red-light`    | Logic or workflow changes that need senior review        |
 | `green-light`  | Safe, low-risk changes — docs, formatting, minor fixes   |
 | `yellow-light` | Changes you are not fully confident about                |
